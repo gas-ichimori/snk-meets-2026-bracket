@@ -63,8 +63,6 @@
 
   /* ---- bracket screen ---- */
   #bracketScreen{display:none;}
-  .bracket-toolbar{display:flex;justify-content:space-between;align-items:center;
-    flex-wrap:wrap;gap:10px;margin-bottom:16px;}
 
   #champion{display:none;text-align:center;padding:16px;margin-bottom:16px;border-radius:14px;
     background:linear-gradient(135deg,#2a2608,#3a3210);border:2px solid var(--gold);}
@@ -122,6 +120,7 @@
       <h1>トーナメント管理</h1>
       <p>メディア対抗戦・リアルタイム進行用</p>
     </div>
+    <button class="btn btn-ghost btn-white-border" id="newSetupBtn" style="margin-left:auto;display:none;">再設定</button>
   </header>
 
   <main>
@@ -147,13 +146,6 @@
 
     <!-- ===== BRACKET SCREEN ===== -->
     <div id="bracketScreen">
-      <div class="bracket-toolbar">
-        <div></div>
-        <div class="btn-row">
-          <button class="btn btn-ghost btn-white-border" id="newSetupBtn">再設定</button>
-        </div>
-      </div>
-
       <div id="champion">
         <div class="label">CHAMPION</div>
         <div class="name" id="championName">-</div>
@@ -512,13 +504,16 @@
   });
 
   function showScreen(){
+    var headerBtn = document.getElementById("newSetupBtn");
     if(state.screen === "bracket" && state.round0Slots && state.round0Slots.length){
       document.getElementById("setupScreen").style.display = "none";
       document.getElementById("bracketScreen").style.display = "block";
+      headerBtn.style.display = "inline-block";
       renderBracket();
     } else {
       document.getElementById("setupScreen").style.display = "block";
       document.getElementById("bracketScreen").style.display = "none";
+      headerBtn.style.display = "none";
       renderSetup();
     }
   }
