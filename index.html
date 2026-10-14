@@ -83,7 +83,7 @@
   .leaf-panel.eliminated .lname{color:#5d6b94;}
   .leaf-panel.champion-panel{border-color:var(--gold);box-shadow:0 0 14px 2px rgba(255,214,10,.5);}
 
-  .badge{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  .badge{position:absolute;display:flex;align-items:center;justify-content:center;
     font-weight:800;color:#111;border:2px solid rgba(255,255,255,.45);
     transition:filter .4s, box-shadow .4s, border-color .4s, opacity .4s;}
   .badge.clickable{cursor:pointer;}
@@ -185,7 +185,6 @@
   function buildDefaultNames(count){ var arr=[]; for(var i=0;i<count;i++) arr.push(defaultName(i)); return arr; }
   function shuffle(arr){ var a=arr.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
   function nextPow2(n){ var p=1; while(p<n) p*=2; return p; }
-  function teamHue(i, total){ return Math.round((i * (360/total)) % 360); }
 
   function buildRound0Slots(teamsOrder, bracketSize){
     var byes = bracketSize - teamsOrder.length;
@@ -291,7 +290,7 @@
   });
 
   // ---------- BRACKET SCREEN (vertical pyramid, panel + badge style) ----------
-  var LEAF_GAP_X = 118, LEAF_PANEL_W = 92, LEAF_PANEL_H = 84, BADGE_SIZE = 44,
+  var LEAF_GAP_X = 118, LEAF_PANEL_W = 92, LEAF_PANEL_H = 84, BADGE_W = 38, BADGE_H = 60,
       ROUND_GAP_Y = 170, TOP_MARGIN = 80, SIDE_PAD = 22;
 
   var pyramidEl = document.getElementById("pyramid");
@@ -333,10 +332,10 @@
   }
 
   function connectorTopY(layout, L){
-    return L === 0 ? layout.layoutY[0] - LEAF_PANEL_H/2 : layout.layoutY[L] - BADGE_SIZE/2;
+    return L === 0 ? layout.layoutY[0] - LEAF_PANEL_H/2 : layout.layoutY[L] - BADGE_H/2;
   }
   function connectorBottomY(layout, L){
-    return layout.layoutY[L] + BADGE_SIZE/2;
+    return layout.layoutY[L] + BADGE_H/2;
   }
 
   function renderBracket(){
@@ -405,18 +404,19 @@
         var name = occupantAt(rounds, state.round0Slots, L0, idx);
         var x = layout.layoutX[L0][idx];
         var y;
-        var size = BADGE_SIZE;
+        var w = BADGE_W, h = BADGE_H;
         var isApex = (L0 === numRounds);
         if(L0 === 0){
-          y = layout.layoutY[0] + LEAF_PANEL_H/2 - size/2 - 6; // nestled near bottom of leaf panel, below the name text
+          y = layout.layoutY[0] + LEAF_PANEL_H/2 - h/2 - 6; // nestled near bottom of leaf panel, below the name text
         } else {
           y = layout.layoutY[L0];
         }
-        if(isApex) size = BADGE_SIZE * 1.4;
+        if(isApex){ w = BADGE_W * 1.4; h = BADGE_H * 1.4; }
 
         var badge = document.createElement("div");
         badge.style.left = x + "px"; badge.style.top = y + "px";
-        badge.style.width = size + "px"; badge.style.height = size + "px";
+        badge.style.width = w + "px"; badge.style.height = h + "px";
+        badge.style.borderRadius = (w/2) + "px";
         badge.style.fontSize = (isApex ? 1.15 : 0.82) + "rem";
         badge.style.transform = "translate(-50%,-50%)";
 
@@ -424,16 +424,13 @@
           badge.className = "badge placeholder";
         } else {
           var elim = isEliminated(rounds, name);
-          var homeIdx = state.round0Slots.indexOf(name);
-          var hue = teamHue(homeIdx >= 0 ? homeIdx : idx, bracketSize);
           var cls = "badge";
           if(L0 === 0){
             cls += elim ? " eliminated" : "";
-            badge.style.background = elim ? "#334" : "hsl(" + hue + ",85%,72%)";
           } else {
             cls += elim ? " eliminated" : " advanced";
-            badge.style.background = elim ? "#334" : "hsl(" + hue + ",90%,75%)";
           }
+          badge.style.background = elim ? "#334" : "#ffffff";
           if(isApex && !elim && name){ cls += " champion-badge"; }
           badge.className = cls;
           badge.textContent = name.charAt(0);
@@ -472,7 +469,7 @@
             var tag = document.createElement("div");
             tag.className = "bye-tag";
             tag.style.left = x + "px";
-            tag.style.top = (y + size/2 + 2) + "px";
+            tag.style.top = (y + h/2 + 2) + "px";
             tag.textContent = "不戦勝";
             pyramidEl.appendChild(tag);
           }
@@ -484,7 +481,7 @@
     var crown = document.createElement("div");
     crown.className = "crown";
     crown.style.left = layout.layoutX[numRounds][0] + "px";
-    crown.style.top = (layout.layoutY[numRounds] - BADGE_SIZE*0.7) + "px";
+    crown.style.top = (layout.layoutY[numRounds] - BADGE_H*0.75) + "px";
     crown.textContent = "\u{1F451}";
     pyramidEl.appendChild(crown);
 
