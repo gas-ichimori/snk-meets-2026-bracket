@@ -58,6 +58,7 @@
     font-size:.95rem;font-weight:700;cursor:pointer;}
   .btn-primary{background:var(--blue);color:#fff;}
   .btn-ghost{background:transparent;color:var(--sub);border:1px solid #2b3a74;}
+  .btn-white-border{border-color:#ffffff;color:#fff;}
   .btn-row{display:flex;gap:10px;flex-wrap:wrap;}
 
   /* ---- bracket screen ---- */
@@ -74,13 +75,13 @@
   .pyramid-wrap{position:relative;margin:0 auto;}
   .pyramid-wrap svg{position:absolute;left:0;top:0;pointer-events:none;}
 
-  .leaf-panel{position:absolute;border:2px solid #2b3a74;border-radius:10px;background:var(--panel);
+  .leaf-panel{position:absolute;border:2px solid #2b3a74;border-radius:10px;background:#ffffff;
     display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;
     padding:8px 5px 5px;transition:border-color .4s, opacity .4s;}
-  .leaf-panel.empty{border-style:dashed;opacity:.35;}
+  .leaf-panel.empty{border-style:dashed;opacity:.35;background:transparent;}
   .leaf-panel .lname{font-size:.72rem;font-weight:700;text-align:center;line-height:1.15;
-    word-break:break-all;color:var(--text);}
-  .leaf-panel.eliminated .lname{color:#5d6b94;}
+    word-break:break-all;color:#1a1f33;}
+  .leaf-panel.eliminated .lname{color:#9aa0b4;}
   .leaf-panel.champion-panel{border-color:var(--gold);box-shadow:0 0 14px 2px rgba(255,214,10,.5);}
 
   .badge{position:absolute;display:flex;align-items:center;justify-content:center;
@@ -146,10 +147,9 @@
     <!-- ===== BRACKET SCREEN ===== -->
     <div id="bracketScreen">
       <div class="bracket-toolbar">
-        <div style="font-size:.85rem;color:var(--sub);">アイコンをタップ／クリックすると勝者として線上を進出します</div>
+        <div></div>
         <div class="btn-row">
-          <button class="btn btn-ghost" id="rematchBtn">同じ組み合わせでリセット</button>
-          <button class="btn btn-ghost" id="newSetupBtn">設定からやり直す</button>
+          <button class="btn btn-ghost btn-white-border" id="newSetupBtn">再設定</button>
         </div>
       </div>
 
@@ -185,6 +185,7 @@
   function buildDefaultNames(count){ var arr=[]; for(var i=0;i<count;i++) arr.push(defaultName(i)); return arr; }
   function shuffle(arr){ var a=arr.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
   function nextPow2(n){ var p=1; while(p<n) p*=2; return p; }
+  function teamHue(i, total){ return Math.round((i * (360/total)) % 360); }
 
   function buildRound0Slots(teamsOrder, bracketSize){
     var byes = bracketSize - teamsOrder.length;
@@ -290,7 +291,7 @@
   });
 
   // ---------- BRACKET SCREEN (vertical pyramid, panel + badge style) ----------
-  var LEAF_GAP_X = 118, LEAF_PANEL_W = 92, LEAF_PANEL_H = 84, BADGE_W = 38, BADGE_H = 60,
+  var LEAF_GAP_X = 118, LEAF_PANEL_W = 92, LEAF_PANEL_H = 120, BADGE_W = 38, BADGE_H = 60,
       ROUND_GAP_Y = 170, TOP_MARGIN = 80, SIDE_PAD = 22;
 
   var pyramidEl = document.getElementById("pyramid");
@@ -424,13 +425,16 @@
           badge.className = "badge placeholder";
         } else {
           var elim = isEliminated(rounds, name);
+          var homeIdx = state.round0Slots.indexOf(name);
+          var hue = teamHue(homeIdx >= 0 ? homeIdx : idx, bracketSize);
           var cls = "badge";
           if(L0 === 0){
             cls += elim ? " eliminated" : "";
+            badge.style.background = elim ? "#334" : "hsl(" + hue + ",85%,72%)";
           } else {
             cls += elim ? " eliminated" : " advanced";
+            badge.style.background = elim ? "#334" : "hsl(" + hue + ",90%,75%)";
           }
-          badge.style.background = elim ? "#334" : "#ffffff";
           if(isApex && !elim && name){ cls += " champion-badge"; }
           badge.className = cls;
           badge.textContent = name.charAt(0);
@@ -495,14 +499,6 @@
       championBox.style.display = "none";
     }
   }
-
-  document.getElementById("rematchBtn").addEventListener("click", function(){
-    if(!confirm("勝敗の記録をリセットします（チーム配置はそのまま）。よろしいですか？")) return;
-    state.winners = {};
-    lastFlareKeys = {};
-    save();
-    renderBracket();
-  });
 
   document.getElementById("newSetupBtn").addEventListener("click", function(){
     if(!confirm("チーム数・チーム名の設定からやり直します。よろしいですか？")) return;
