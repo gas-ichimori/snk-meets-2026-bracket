@@ -75,7 +75,8 @@
   .pyramid-wrap{position:relative;margin:0 auto;}
   .pyramid-wrap svg{position:absolute;left:0;top:0;pointer-events:none;}
 
-  .leaf-panel{position:absolute;border:2px solid #2b3a74;border-radius:10px;background:#ffffff;
+  .leaf-panel{position:absolute;border:2px solid #2b3a74;border-radius:10px;
+    background:linear-gradient(160deg,#ffffff 0%,#cdeeff 55%,#8fd6f5 100%);
     display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;
     padding:8px 5px 5px;transition:border-color .4s, opacity .4s;}
   .leaf-panel.empty{border-style:dashed;opacity:.35;background:transparent;}
@@ -291,7 +292,7 @@
   });
 
   // ---------- BRACKET SCREEN (vertical pyramid, panel + badge style) ----------
-  var LEAF_GAP_X = 118, LEAF_PANEL_W = 92, LEAF_PANEL_H = 120, BADGE_W = 38, BADGE_H = 60,
+  var LEAF_GAP_X = 118, LEAF_PANEL_W = 92, LEAF_PANEL_H = 100, BADGE_W = 38, BADGE_H = 60,
       ROUND_GAP_Y = 170, TOP_MARGIN = 80, SIDE_PAD = 22;
 
   var pyramidEl = document.getElementById("pyramid");
