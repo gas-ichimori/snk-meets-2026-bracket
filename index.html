@@ -20,13 +20,20 @@
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;background:var(--navy);color:var(--text);
     font-family:"Hiragino Sans","Yu Gothic",system-ui,-apple-system,sans-serif;}
-  #app{min-height:100vh;display:flex;flex-direction:column;}
 
-  header{padding:18px 20px 14px;text-align:center;border-bottom:2px solid var(--blue);
+  #bgArt{position:fixed;inset:0;z-index:0;
+    background-image:url("assets/ff-cotw-bg.jpg");background-size:cover;background-position:center;
+    filter:blur(18px) brightness(.4) saturate(1.1);transform:scale(1.12);}
+  #bgArt::after{content:"";position:absolute;inset:0;background:rgba(11,20,48,.55);}
+
+  #app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;}
+
+  header{padding:14px 20px;display:flex;align-items:center;gap:16px;border-bottom:2px solid var(--blue);
     background:linear-gradient(180deg,#0e1838,#0b1430);}
-  header h1{margin:0;font-size:1.3rem;letter-spacing:.03em;color:var(--text);}
-  header h1 span{color:var(--gold);}
-  header p{margin:4px 0 0;font-size:.78rem;color:var(--sub);}
+  header img.logo{height:44px;width:auto;flex-shrink:0;}
+  header .htext{min-width:0;}
+  header h1{margin:0;font-size:1.05rem;letter-spacing:.02em;color:var(--text);}
+  header p{margin:2px 0 0;font-size:.74rem;color:var(--sub);}
 
   main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
 
@@ -57,43 +64,62 @@
   #bracketScreen{display:none;}
   .bracket-toolbar{display:flex;justify-content:space-between;align-items:center;
     flex-wrap:wrap;gap:10px;margin-bottom:16px;}
-  .bracket-toolbar .btn-row{flex-wrap:wrap;}
 
-  #champion{display:none;text-align:center;padding:18px;margin-bottom:16px;border-radius:14px;
+  #champion{display:none;text-align:center;padding:16px;margin-bottom:16px;border-radius:14px;
     background:linear-gradient(135deg,#2a2608,#3a3210);border:2px solid var(--gold);}
-  #champion .label{font-size:.8rem;color:var(--gold);letter-spacing:.1em;}
-  #champion .name{font-size:1.8rem;font-weight:800;color:#fff;margin-top:4px;}
+  #champion .label{font-size:.78rem;color:var(--gold);letter-spacing:.12em;}
+  #champion .name{font-size:1.7rem;font-weight:800;color:#fff;margin-top:4px;}
 
-  .bracket-scroll{overflow-x:auto;padding-bottom:10px;}
-  .bracket{display:flex;gap:34px;min-height:200px;}
-  .round-col{display:flex;flex-direction:column;justify-content:space-around;min-width:190px;}
-  .round-title{text-align:center;font-size:.78rem;color:var(--sub);margin-bottom:10px;letter-spacing:.05em;}
+  .pyramid-scroll{overflow-x:auto;overflow-y:hidden;padding:10px 0 20px;}
+  .pyramid-wrap{position:relative;margin:0 auto;}
+  .pyramid-wrap svg{position:absolute;left:0;top:0;pointer-events:none;}
 
-  .match{background:var(--panel);border:1px solid #223063;border-radius:10px;overflow:hidden;}
-  .slot{padding:10px 12px;font-size:.92rem;cursor:pointer;border-bottom:1px solid #223063;
-    display:flex;justify-content:space-between;align-items:center;user-select:none;}
-  .slot:last-child{border-bottom:none;}
-  .slot:hover{background:#1b2956;}
-  .slot.empty{color:#51608c;cursor:default;font-style:italic;}
-  .slot.bye{color:#51608c;cursor:default;}
-  .slot.winner{background:#123a22;color:var(--win);font-weight:700;}
-  .slot.loser{color:var(--lose);text-decoration:line-through;}
-  .slot .mark{font-size:.75rem;}
+  .leaf-panel{position:absolute;border:2px solid #2b3a74;border-radius:10px;background:var(--panel);
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;
+    padding:8px 5px 5px;transition:border-color .4s, opacity .4s;}
+  .leaf-panel.empty{border-style:dashed;opacity:.35;}
+  .leaf-panel .lname{font-size:.72rem;font-weight:700;text-align:center;line-height:1.15;
+    word-break:break-all;color:var(--text);}
+  .leaf-panel.eliminated .lname{color:#5d6b94;}
+  .leaf-panel.champion-panel{border-color:var(--gold);box-shadow:0 0 14px 2px rgba(255,214,10,.5);}
+
+  .badge{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-weight:800;color:#111;border:2px solid rgba(255,255,255,.45);
+    transition:filter .4s, box-shadow .4s, border-color .4s, opacity .4s;}
+  .badge.clickable{cursor:pointer;}
+  .badge.placeholder{background:transparent;border:2px dashed #33407a;color:transparent;}
+  .badge.advanced{box-shadow:0 0 0 3px var(--gold), 0 0 16px 4px rgba(255,214,10,.75);border-color:var(--gold);}
+  .badge.eliminated{filter:grayscale(1) brightness(.5);opacity:.45;cursor:default;box-shadow:none;border-color:#445;}
+  .badge.champion-badge{box-shadow:0 0 0 4px var(--gold), 0 0 26px 8px rgba(255,214,10,.9);border-color:var(--gold);}
+
+  @keyframes flare{
+    0%{ transform:translate(-50%,-50%) scale(.4); box-shadow:0 0 0 0 rgba(255,214,10,0); }
+    45%{ transform:translate(-50%,-50%) scale(1.3); box-shadow:0 0 34px 12px rgba(255,214,10,1); }
+    100%{ transform:translate(-50%,-50%) scale(1); }
+  }
+  .badge.flare{animation:flare .85s ease-out;}
+
+  .bye-tag{position:absolute;font-size:.6rem;color:var(--sub);white-space:nowrap;transform:translate(-50%,0);}
+
+  .crown{position:absolute;transform:translate(-50%,-100%);font-size:1.6rem;}
 
   footer{text-align:center;padding:14px;font-size:.72rem;color:#51608c;}
 
   @media (max-width:600px){
-    header h1{font-size:1.08rem;}
-    .round-col{min-width:160px;}
-    .bracket{gap:22px;}
+    header img.logo{height:36px;}
+    header h1{font-size:.92rem;}
   }
 </style>
 </head>
 <body>
+<div id="bgArt"></div>
 <div id="app">
   <header>
-    <h1>SNK MEETS 2026 <span>トーナメント管理</span></h1>
-    <p>メディア対抗戦・リアルタイム進行用</p>
+    <img class="logo" src="assets/snk-meets-2026-logo.png" alt="SNK MEETS 2026">
+    <div class="htext">
+      <h1>トーナメント管理</h1>
+      <p>メディア対抗戦・リアルタイム進行用</p>
+    </div>
   </header>
 
   <main>
@@ -120,7 +146,7 @@
     <!-- ===== BRACKET SCREEN ===== -->
     <div id="bracketScreen">
       <div class="bracket-toolbar">
-        <div style="font-size:.85rem;color:var(--sub);">チーム名をタップ／クリックすると勝者として進出します</div>
+        <div style="font-size:.85rem;color:var(--sub);">アイコンをタップ／クリックすると勝者として線上を進出します</div>
         <div class="btn-row">
           <button class="btn btn-ghost" id="rematchBtn">同じ組み合わせでリセット</button>
           <button class="btn btn-ghost" id="newSetupBtn">設定からやり直す</button>
@@ -132,8 +158,8 @@
         <div class="name" id="championName">-</div>
       </div>
 
-      <div class="bracket-scroll">
-        <div class="bracket" id="bracket"></div>
+      <div class="pyramid-scroll">
+        <div class="pyramid-wrap" id="pyramid"></div>
       </div>
     </div>
   </main>
@@ -147,76 +173,46 @@
   var STORAGE_KEY = "snkMeets2026BracketState";
 
   var state = {
-    screen: "setup",      // "setup" | "bracket"
+    screen: "setup",
     teamCount: 8,
-    teamNames: [],        // current editable names for setup
-    round0Slots: [],       // fixed slots once tournament starts (names / null for BYE)
-    winners: {}            // key "roundIndex_matchIndex" -> winner name
+    teamNames: [],
+    round0Slots: [],
+    winners: {}
   };
+  var lastFlareKeys = {}; // winners-dict keys seen at the previous render, to only flare NEW decisions
 
-  function defaultName(i){
-    return String.fromCharCode(65 + i) + "チーム";
-  }
+  function defaultName(i){ return String.fromCharCode(65 + i) + "チーム"; }
+  function buildDefaultNames(count){ var arr=[]; for(var i=0;i<count;i++) arr.push(defaultName(i)); return arr; }
+  function shuffle(arr){ var a=arr.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
+  function nextPow2(n){ var p=1; while(p<n) p*=2; return p; }
+  function teamHue(i, total){ return Math.round((i * (360/total)) % 360); }
 
-  function buildDefaultNames(count){
-    var arr = [];
-    for(var i=0;i<count;i++) arr.push(defaultName(i));
-    return arr;
-  }
-
-  function shuffle(arr){
-    var a = arr.slice();
-    for(var i=a.length-1;i>0;i--){
-      var j = Math.floor(Math.random()*(i+1));
-      var tmp=a[i]; a[i]=a[j]; a[j]=tmp;
-    }
-    return a;
-  }
-
-  function nextPow2(n){
-    var p = 1;
-    while(p < n) p *= 2;
-    return p;
-  }
-
-  // Build round0 slots with BYE pairing: first `byes` matches get [team, null],
-  // remaining teams fill normal pairs. Guarantees no BYE-vs-BYE match.
   function buildRound0Slots(teamsOrder, bracketSize){
     var byes = bracketSize - teamsOrder.length;
-    var slots = [];
-    var idx = 0;
-    for(var i=0;i<byes;i++){
-      slots.push(teamsOrder[idx++]);
-      slots.push(null);
-    }
-    while(idx < teamsOrder.length){
-      slots.push(teamsOrder[idx++]);
-    }
+    var slots = []; var idx = 0;
+    for(var i=0;i<byes;i++){ slots.push(teamsOrder[idx++]); slots.push(null); }
+    while(idx < teamsOrder.length) slots.push(teamsOrder[idx++]);
     while(slots.length < bracketSize) slots.push(null);
     return slots;
   }
 
-  // Recompute all rounds from fixed round0Slots + winners dict.
-  // Stale winner picks (no longer matching current slots) are treated as undecided.
+  // Same tested model as before: rounds[r][m] = {a,b,winner}. winners dict key "r_m".
   function computeRounds(round0Slots, winners){
     var rounds = [];
     var currentSlots = round0Slots.slice();
     var roundIndex = 0;
     while(currentSlots.length >= 2){
-      var matches = [];
-      var nextSlots = [];
+      var matches = []; var nextSlots = [];
       for(var m=0; m<currentSlots.length/2; m++){
-        var a = currentSlots[2*m];
-        var b = currentSlots[2*m+1];
+        var a = currentSlots[2*m], b = currentSlots[2*m+1];
         var winner = null;
         if(a && !b){ winner = a; }
         else if(b && !a){ winner = b; }
         else if(a && b){
-          var key = roundIndex + "_" + m;
-          var picked = winners[key];
+          var picked = winners[roundIndex + "_" + m];
           if(picked === a || picked === b) winner = picked;
         }
-        matches.push({a:a, b:b, winner:winner});
+        matches.push({a:a,b:b,winner:winner});
         nextSlots.push(winner);
       }
       rounds.push(matches);
@@ -227,24 +223,11 @@
     return rounds;
   }
 
-  function roundLabel(totalRounds, idx){
-    var fromEnd = totalRounds - idx;
-    if(fromEnd === 1) return "決勝";
-    if(fromEnd === 2) return "準決勝";
-    if(fromEnd === 3) return "準々決勝";
-    return (idx+1) + "回戦";
-  }
-
-  function save(){
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
-  }
+  function save(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
   function load(){
     try{
       var raw = localStorage.getItem(STORAGE_KEY);
-      if(raw){
-        var loaded = JSON.parse(raw);
-        state = Object.assign(state, loaded);
-      }
+      if(raw) state = Object.assign(state, JSON.parse(raw));
     }catch(e){}
   }
 
@@ -268,7 +251,6 @@
   });
 
   function renderSetup(){
-    // count buttons active state
     Array.prototype.forEach.call(countRow.children, function(btn){
       btn.classList.toggle("active", parseInt(btn.dataset.count,10) === state.teamCount);
     });
@@ -281,90 +263,223 @@
       input.type = "text";
       input.value = name;
       input.placeholder = defaultName(i);
-      input.addEventListener("input", function(){
-        state.teamNames[i] = input.value;
-      });
+      input.addEventListener("input", function(){ state.teamNames[i] = input.value; });
       teamGrid.appendChild(input);
     });
   }
 
   startBtn.addEventListener("click", function(){
-    var names = state.teamNames.map(function(n, i){
-      var v = (n || "").trim();
-      return v.length ? v : defaultName(i);
-    });
+    var names = state.teamNames.map(function(n,i){ var v=(n||"").trim(); return v.length?v:defaultName(i); });
     var order = randomToggle.checked ? shuffle(names) : names;
     var bracketSize = nextPow2(state.teamCount);
     state.round0Slots = buildRound0Slots(order, bracketSize);
     state.winners = {};
     state.screen = "bracket";
+    lastFlareKeys = {};
     save();
     showScreen();
   });
 
-  // ---------- BRACKET SCREEN ----------
-  var bracketEl = document.getElementById("bracket");
+  // ---------- BRACKET SCREEN (vertical pyramid, panel + badge style) ----------
+  var LEAF_GAP_X = 118, LEAF_PANEL_W = 92, LEAF_PANEL_H = 84, BADGE_SIZE = 44,
+      ROUND_GAP_Y = 84, TOP_MARGIN = 60, SIDE_PAD = 22;
+
+  var pyramidEl = document.getElementById("pyramid");
   var championBox = document.getElementById("champion");
   var championName = document.getElementById("championName");
 
+  function computeLayout(bracketSize){
+    var numRounds = Math.log2(bracketSize);
+    var layoutX = [], layoutY = [];
+    layoutX[0] = [];
+    for(var i=0;i<bracketSize;i++) layoutX[0].push(SIDE_PAD + i*LEAF_GAP_X + LEAF_GAP_X/2);
+    for(var L=1; L<=numRounds; L++){
+      layoutX[L] = [];
+      var prev = layoutX[L-1];
+      for(var j=0;j<prev.length/2;j++) layoutX[L].push((prev[2*j]+prev[2*j+1])/2);
+    }
+    for(var L2=0; L2<=numRounds; L2++) layoutY[L2] = TOP_MARGIN + (numRounds - L2) * ROUND_GAP_Y;
+    var width = SIDE_PAD*2 + bracketSize*LEAF_GAP_X;
+    var height = TOP_MARGIN + numRounds*ROUND_GAP_Y + LEAF_PANEL_H/2 + 24;
+    return {numRounds:numRounds, layoutX:layoutX, layoutY:layoutY, width:width, height:height};
+  }
+
+  // occupant name at level L, index i (L=0 -> round0Slots; L>=1 -> rounds[L-1][i].winner)
+  function occupantAt(rounds, round0Slots, L, i){
+    if(L === 0) return round0Slots[i];
+    var m = rounds[L-1][i];
+    return m ? m.winner : null;
+  }
+
+  function isEliminated(rounds, name){
+    if(!name) return false;
+    for(var r=0;r<rounds.length;r++){
+      for(var m=0;m<rounds[r].length;m++){
+        var mt = rounds[r][m];
+        if((mt.a === name || mt.b === name) && mt.winner && mt.winner !== name) return true;
+      }
+    }
+    return false;
+  }
+
+  function connectorTopY(layout, L){
+    return L === 0 ? layout.layoutY[0] - LEAF_PANEL_H/2 : layout.layoutY[L] - BADGE_SIZE/2;
+  }
+  function connectorBottomY(layout, L){
+    return layout.layoutY[L] + BADGE_SIZE/2;
+  }
+
   function renderBracket(){
+    var bracketSize = state.round0Slots.length;
+    var layout = computeLayout(bracketSize);
     var rounds = computeRounds(state.round0Slots, state.winners);
-    var totalRounds = rounds.length;
-    bracketEl.innerHTML = "";
+    var numRounds = layout.numRounds;
 
-    rounds.forEach(function(matches, r){
-      var col = document.createElement("div");
-      col.className = "round-col";
+    pyramidEl.style.width = layout.width + "px";
+    pyramidEl.style.height = layout.height + "px";
+    pyramidEl.innerHTML = "";
 
-      var title = document.createElement("div");
-      title.className = "round-title";
-      title.textContent = roundLabel(totalRounds, r);
-      col.appendChild(title);
+    // --- SVG connector lines ---
+    var svgNS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("width", layout.width);
+    svg.setAttribute("height", layout.height);
+    for(var L=1; L<=numRounds; L++){
+      var childCount = layout.layoutX[L-1].length;
+      for(var m=0; m<childCount/2; m++){
+        var xC0 = layout.layoutX[L-1][2*m], xC1 = layout.layoutX[L-1][2*m+1];
+        var xP = layout.layoutX[L][m];
+        var yChildTop = connectorTopY(layout, L-1);
+        var yParentBottom = connectorBottomY(layout, L);
+        var midY = (yChildTop + yParentBottom) / 2;
+        [[xC0,yChildTop,xC0,midY],[xC1,yChildTop,xC1,midY],[xC0,midY,xC1,midY],[xP,midY,xP,yParentBottom]]
+          .forEach(function(seg){
+            var line = document.createElementNS(svgNS,"line");
+            line.setAttribute("x1",seg[0]); line.setAttribute("y1",seg[1]);
+            line.setAttribute("x2",seg[2]); line.setAttribute("y2",seg[3]);
+            line.setAttribute("stroke","#3a4a8a"); line.setAttribute("stroke-width","3");
+            svg.appendChild(line);
+          });
+      }
+    }
+    pyramidEl.appendChild(svg);
 
-      matches.forEach(function(match, m){
-        var box = document.createElement("div");
-        box.className = "match";
+    var currentFlareKeys = {};
 
-        [["a", match.a], ["b", match.b]].forEach(function(pair){
-          var side = pair[0], name = pair[1];
-          var slot = document.createElement("div");
-          var isBye = (side === "a" ? !match.b : !match.a) && name;
-          if(!name){
-            slot.className = "slot empty";
-            slot.textContent = "未定";
-          } else if(isBye){
-            slot.className = "slot bye";
-            slot.innerHTML = name + ' <span class="mark">(不戦勝)</span>';
-          } else if(match.winner === name){
-            slot.className = "slot winner";
-            slot.innerHTML = name + ' <span class="mark">&#9679; WIN</span>';
-          } else if(match.winner && match.winner !== name){
-            slot.className = "slot loser";
-            slot.textContent = name;
+    // --- leaf panels (round 0, always-visible home panels) ---
+    for(var i=0;i<bracketSize;i++){
+      var name0 = state.round0Slots[i];
+      var panel = document.createElement("div");
+      var x0 = layout.layoutX[0][i], y0 = layout.layoutY[0];
+      panel.style.left = x0 + "px"; panel.style.top = y0 + "px";
+      panel.style.width = LEAF_PANEL_W + "px"; panel.style.height = LEAF_PANEL_H + "px";
+      panel.style.transform = "translate(-50%,-50%)";
+      if(!name0){
+        panel.className = "leaf-panel empty";
+        panel.innerHTML = '<span class="lname">―</span>';
+      } else {
+        var elim0 = isEliminated(rounds, name0);
+        panel.className = "leaf-panel" + (elim0 ? " eliminated" : "");
+        var nameDiv = document.createElement("div");
+        nameDiv.className = "lname";
+        nameDiv.textContent = name0;
+        panel.appendChild(nameDiv);
+      }
+      pyramidEl.appendChild(panel);
+    }
+
+    // --- badges for every level (0 = identity badge inside leaf panel area, >=1 = advancement nodes) ---
+    for(var L0=0; L0<=numRounds; L0++){
+      var slotCount = layout.layoutX[L0].length;
+      for(var idx=0; idx<slotCount; idx++){
+        var name = occupantAt(rounds, state.round0Slots, L0, idx);
+        var x = layout.layoutX[L0][idx];
+        var y;
+        var size = BADGE_SIZE;
+        var isApex = (L0 === numRounds);
+        if(L0 === 0){
+          y = layout.layoutY[0] + LEAF_PANEL_H/2 - size/2 - 6; // nestled near bottom of leaf panel, below the name text
+        } else {
+          y = layout.layoutY[L0];
+        }
+        if(isApex) size = BADGE_SIZE * 1.4;
+
+        var badge = document.createElement("div");
+        badge.style.left = x + "px"; badge.style.top = y + "px";
+        badge.style.width = size + "px"; badge.style.height = size + "px";
+        badge.style.fontSize = (isApex ? 1.15 : 0.82) + "rem";
+        badge.style.transform = "translate(-50%,-50%)";
+
+        if(!name){
+          badge.className = "badge placeholder";
+        } else {
+          var elim = isEliminated(rounds, name);
+          var homeIdx = state.round0Slots.indexOf(name);
+          var hue = teamHue(homeIdx >= 0 ? homeIdx : idx, bracketSize);
+          var cls = "badge";
+          if(L0 === 0){
+            cls += elim ? " eliminated" : "";
+            badge.style.background = elim ? "#334" : "hsl(" + hue + ",70%,55%)";
           } else {
-            slot.className = "slot";
-            slot.textContent = name;
+            cls += elim ? " eliminated" : " advanced";
+            badge.style.background = elim ? "#334" : "hsl(" + hue + ",80%,60%)";
+          }
+          if(isApex && !elim && name){ cls += " champion-badge"; }
+          badge.className = cls;
+          badge.textContent = name.charAt(0);
+          badge.title = name;
+
+          // click target: this occupant may still have a pending decision at round L0 (feeds match rounds[L0][floor(idx/2)])
+          if(L0 < numRounds){
+            var matchIndex = Math.floor(idx/2);
+            var match = rounds[L0] && rounds[L0][matchIndex];
+            if(match && match.a && match.b){
+              badge.classList.add("clickable");
+              badge.addEventListener("click", (function(rr, mm, nm){
+                return function(){
+                  state.winners[rr + "_" + mm] = nm;
+                  save();
+                  renderBracket();
+                };
+              })(L0, matchIndex, name));
+            }
           }
 
-          // clickable only when both real names present (a genuine decision)
-          if(match.a && match.b && name){
-            slot.addEventListener("click", function(){
-              state.winners[r + "_" + m] = name;
-              save();
-              renderBracket();
-            });
+          // flare newly-decided advancement badges (L>=1)
+          if(L0 >= 1){
+            var flareKey = L0 + "@" + idx + "=" + name;
+            currentFlareKeys[flareKey] = true;
+            if(!lastFlareKeys[flareKey]) badge.classList.add("flare");
           }
-          box.appendChild(slot);
-        });
+        }
+        pyramidEl.appendChild(badge);
 
-        col.appendChild(box);
-      });
+        // bye tag
+        if(L0 >= 1 && name){
+          var srcMatch = rounds[L0-1] && rounds[L0-1][idx];
+          if(srcMatch && ((srcMatch.a && !srcMatch.b) || (!srcMatch.a && srcMatch.b))){
+            var tag = document.createElement("div");
+            tag.className = "bye-tag";
+            tag.style.left = x + "px";
+            tag.style.top = (y + size/2 + 2) + "px";
+            tag.textContent = "不戦勝";
+            pyramidEl.appendChild(tag);
+          }
+        }
+      }
+    }
 
-      bracketEl.appendChild(col);
-    });
+    // crown decoration above apex
+    var crown = document.createElement("div");
+    crown.className = "crown";
+    crown.style.left = layout.layoutX[numRounds][0] + "px";
+    crown.style.top = (layout.layoutY[numRounds] - BADGE_SIZE*0.7) + "px";
+    crown.textContent = "\u{1F451}";
+    pyramidEl.appendChild(crown);
 
-    var final = rounds[rounds.length - 1];
-    var champ = final && final[0] ? final[0].winner : null;
+    lastFlareKeys = currentFlareKeys;
+
+    var champ = rounds[rounds.length-1] && rounds[rounds.length-1][0] ? rounds[rounds.length-1][0].winner : null;
     if(champ){
       championBox.style.display = "block";
       championName.textContent = champ;
@@ -376,6 +491,7 @@
   document.getElementById("rematchBtn").addEventListener("click", function(){
     if(!confirm("勝敗の記録をリセットします（チーム配置はそのまま）。よろしいですか？")) return;
     state.winners = {};
+    lastFlareKeys = {};
     save();
     renderBracket();
   });
@@ -385,6 +501,7 @@
     state.screen = "setup";
     state.round0Slots = [];
     state.winners = {};
+    lastFlareKeys = {};
     save();
     showScreen();
   });
@@ -402,9 +519,7 @@
   }
 
   load();
-  if(!state.teamNames || !state.teamNames.length){
-    state.teamNames = buildDefaultNames(state.teamCount);
-  }
+  if(!state.teamNames || !state.teamNames.length) state.teamNames = buildDefaultNames(state.teamCount);
   showScreen();
 })();
 </script>
