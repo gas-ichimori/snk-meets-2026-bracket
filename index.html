@@ -23,8 +23,8 @@
 
   #bgArt{position:fixed;inset:0;z-index:0;
     background-image:url("assets/ff-cotw-bg.jpg");background-size:cover;background-position:center;
-    filter:blur(18px) brightness(.4) saturate(1.1);transform:scale(1.12);}
-  #bgArt::after{content:"";position:absolute;inset:0;background:rgba(11,20,48,.55);}
+    filter:blur(5px) brightness(.62) saturate(1.15);transform:scale(1.06);}
+  #bgArt::after{content:"";position:absolute;inset:0;background:rgba(11,20,48,.38);}
 
   #app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;}
 
@@ -196,21 +196,31 @@
     return slots;
   }
 
-  // Same tested model as before: rounds[r][m] = {a,b,winner}. winners dict key "r_m".
+  // rounds[r][m] = {a,b,winner}. winners dict key "r_m".
+  // IMPORTANT: a/b/winner use three distinct states:
+  //   a real name (string)  = a team occupies this slot
+  //   null                  = this slot is structurally empty forever (bracket padding / true bye)
+  //   undefined             = not decided YET (an earlier match this depends on hasn't been picked) -- must NOT auto-advance
   function computeRounds(round0Slots, winners){
     var rounds = [];
-    var currentSlots = round0Slots.slice();
+    var currentSlots = round0Slots.slice(); // round0 entries are only string|null, never undefined
     var roundIndex = 0;
     while(currentSlots.length >= 2){
       var matches = []; var nextSlots = [];
       for(var m=0; m<currentSlots.length/2; m++){
         var a = currentSlots[2*m], b = currentSlots[2*m+1];
-        var winner = null;
-        if(a && !b){ winner = a; }
-        else if(b && !a){ winner = b; }
-        else if(a && b){
+        var winner;
+        if(a === undefined || b === undefined){
+          winner = undefined; // still waiting on an earlier match -- not a bye
+        } else if(a && b === null){
+          winner = a; // true structural bye
+        } else if(b && a === null){
+          winner = b;
+        } else if(a === null && b === null){
+          winner = null;
+        } else {
           var picked = winners[roundIndex + "_" + m];
-          if(picked === a || picked === b) winner = picked;
+          winner = (picked === a || picked === b) ? picked : undefined;
         }
         matches.push({a:a,b:b,winner:winner});
         nextSlots.push(winner);
@@ -457,7 +467,8 @@
         // bye tag
         if(L0 >= 1 && name){
           var srcMatch = rounds[L0-1] && rounds[L0-1][idx];
-          if(srcMatch && ((srcMatch.a && !srcMatch.b) || (!srcMatch.a && srcMatch.b))){
+          // only a TRUE structural bye (opponent slot is null, not merely undecided) gets the tag
+          if(srcMatch && ((srcMatch.a && srcMatch.b === null) || (srcMatch.b && srcMatch.a === null))){
             var tag = document.createElement("div");
             tag.className = "bye-tag";
             tag.style.left = x + "px";
