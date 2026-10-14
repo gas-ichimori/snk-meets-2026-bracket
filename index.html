@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SNK MEETS 2026 トーナメント管理</title>
+<style>
+  :root{
+    --navy:#0b1430;
+    --panel:#121d42;
+    --panel2:#17234e;
+    --blue:#007ADA;
+    --blue-light:#4db2ff;
+    --gold:#ffd60a;
+    --win:#22c55e;
+    --lose:#64748b;
+    --text:#f2f5fb;
+    --sub:#9fb0d0;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--navy);color:var(--text);
+    font-family:"Hiragino Sans","Yu Gothic",system-ui,-apple-system,sans-serif;}
+  #app{min-height:100vh;display:flex;flex-direction:column;}
+
+  header{padding:18px 20px 14px;text-align:center;border-bottom:2px solid var(--blue);
+    background:linear-gradient(180deg,#0e1838,#0b1430);}
+  header h1{margin:0;font-size:1.3rem;letter-spacing:.03em;color:var(--text);}
+  header h1 span{color:var(--gold);}
+  header p{margin:4px 0 0;font-size:.78rem;color:var(--sub);}
+
+  main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
+
+  /* ---- setup screen ---- */
+  .card{background:var(--panel);border:1px solid #223063;border-radius:14px;
+    padding:18px;margin-bottom:16px;}
+  .card h2{margin:0 0 12px;font-size:1.02rem;color:var(--blue-light);}
+  .count-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+  .count-btn{flex:1;min-width:70px;padding:14px 8px;border-radius:10px;border:2px solid #2b3a74;
+    background:var(--panel2);color:var(--text);font-size:1.05rem;font-weight:700;cursor:pointer;}
+  .count-btn.active{border-color:var(--gold);background:#2a2608;color:var(--gold);}
+
+  .team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:14px;}
+  .team-grid input{width:100%;padding:9px 10px;border-radius:8px;border:1px solid #2b3a74;
+    background:#0e1838;color:var(--text);font-size:.92rem;}
+  .team-grid input:focus{outline:2px solid var(--blue-light);}
+
+  .toggle-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;font-size:.88rem;color:var(--sub);}
+  .toggle-row input{width:18px;height:18px;}
+
+  .btn{display:inline-block;padding:12px 22px;border-radius:10px;border:none;
+    font-size:.95rem;font-weight:700;cursor:pointer;}
+  .btn-primary{background:var(--blue);color:#fff;}
+  .btn-ghost{background:transparent;color:var(--sub);border:1px solid #2b3a74;}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;}
+
+  /* ---- bracket screen ---- */
+  #bracketScreen{display:none;}
+  .bracket-toolbar{display:flex;justify-content:space-between;align-items:center;
+    flex-wrap:wrap;gap:10px;margin-bottom:16px;}
+  .bracket-toolbar .btn-row{flex-wrap:wrap;}
+
+  #champion{display:none;text-align:center;padding:18px;margin-bottom:16px;border-radius:14px;
+    background:linear-gradient(135deg,#2a2608,#3a3210);border:2px solid var(--gold);}
+  #champion .label{font-size:.8rem;color:var(--gold);letter-spacing:.1em;}
+  #champion .name{font-size:1.8rem;font-weight:800;color:#fff;margin-top:4px;}
+
+  .bracket-scroll{overflow-x:auto;padding-bottom:10px;}
+  .bracket{display:flex;gap:34px;min-height:200px;}
+  .round-col{display:flex;flex-direction:column;justify-content:space-around;min-width:190px;}
+  .round-title{text-align:center;font-size:.78rem;color:var(--sub);margin-bottom:10px;letter-spacing:.05em;}
+
+  .match{background:var(--panel);border:1px solid #223063;border-radius:10px;overflow:hidden;}
+  .slot{padding:10px 12px;font-size:.92rem;cursor:pointer;border-bottom:1px solid #223063;
+    display:flex;justify-content:space-between;align-items:center;user-select:none;}
+  .slot:last-child{border-bottom:none;}
+  .slot:hover{background:#1b2956;}
+  .slot.empty{color:#51608c;cursor:default;font-style:italic;}
+  .slot.bye{color:#51608c;cursor:default;}
+  .slot.winner{background:#123a22;color:var(--win);font-weight:700;}
+  .slot.loser{color:var(--lose);text-decoration:line-through;}
+  .slot .mark{font-size:.75rem;}
+
+  footer{text-align:center;padding:14px;font-size:.72rem;color:#51608c;}
+
+  @media (max-width:600px){
+    header h1{font-size:1.08rem;}
+    .round-col{min-width:160px;}
+    .bracket{gap:22px;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>SNK MEETS 2026 <span>トーナメント管理</span></h1>
+    <p>メディア対抗戦・リアルタイム進行用</p>
+  </header>
+
+  <main>
+    <!-- ===== SETUP SCREEN ===== -->
+    <div id="setupScreen">
+      <div class="card">
+        <h2>① チーム数を選択</h2>
+        <div class="count-row" id="countRow"></div>
+      </div>
+
+      <div class="card">
+        <h2>② チーム名を確認・編集（空欄可）</h2>
+        <div class="team-grid" id="teamGrid"></div>
+        <label class="toggle-row">
+          <input type="checkbox" id="randomToggle" checked>
+          組み合わせをランダムにする（オフにすると入力順のまま配置）
+        </label>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="startBtn">トーナメント開始</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== BRACKET SCREEN ===== -->
+    <div id="bracketScreen">
+      <div class="bracket-toolbar">
+        <div style="font-size:.85rem;color:var(--sub);">チーム名をタップ／クリックすると勝者として進出します</div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" id="rematchBtn">同じ組み合わせでリセット</button>
+          <button class="btn btn-ghost" id="newSetupBtn">設定からやり直す</button>
+        </div>
+      </div>
+
+      <div id="champion">
+        <div class="label">CHAMPION</div>
+        <div class="name" id="championName">-</div>
+      </div>
+
+      <div class="bracket-scroll">
+        <div class="bracket" id="bracket"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>GA Solutions — SNK MEETS 2026 Tournament Tool</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var STORAGE_KEY = "snkMeets2026BracketState";
+
+  var state = {
+    screen: "setup",      // "setup" | "bracket"
+    teamCount: 8,
+    teamNames: [],        // current editable names for setup
+    round0Slots: [],       // fixed slots once tournament starts (names / null for BYE)
+    winners: {}            // key "roundIndex_matchIndex" -> winner name
+  };
+
+  function defaultName(i){
+    return String.fromCharCode(65 + i) + "チーム";
+  }
+
+  function buildDefaultNames(count){
+    var arr = [];
+    for(var i=0;i<count;i++) arr.push(defaultName(i));
+    return arr;
+  }
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i=a.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var tmp=a[i]; a[i]=a[j]; a[j]=tmp;
+    }
+    return a;
+  }
+
+  function nextPow2(n){
+    var p = 1;
+    while(p < n) p *= 2;
+    return p;
+  }
+
+  // Build round0 slots with BYE pairing: first `byes` matches get [team, null],
+  // remaining teams fill normal pairs. Guarantees no BYE-vs-BYE match.
+  function buildRound0Slots(teamsOrder, bracketSize){
+    var byes = bracketSize - teamsOrder.length;
+    var slots = [];
+    var idx = 0;
+    for(var i=0;i<byes;i++){
+      slots.push(teamsOrder[idx++]);
+      slots.push(null);
+    }
+    while(idx < teamsOrder.length){
+      slots.push(teamsOrder[idx++]);
+    }
+    while(slots.length < bracketSize) slots.push(null);
+    return slots;
+  }
+
+  // Recompute all rounds from fixed round0Slots + winners dict.
+  // Stale winner picks (no longer matching current slots) are treated as undecided.
+  function computeRounds(round0Slots, winners){
+    var rounds = [];
+    var currentSlots = round0Slots.slice();
+    var roundIndex = 0;
+    while(currentSlots.length >= 2){
+      var matches = [];
+      var nextSlots = [];
+      for(var m=0; m<currentSlots.length/2; m++){
+        var a = currentSlots[2*m];
+        var b = currentSlots[2*m+1];
+        var winner = null;
+        if(a && !b){ winner = a; }
+        else if(b && !a){ winner = b; }
+        else if(a && b){
+          var key = roundIndex + "_" + m;
+          var picked = winners[key];
+          if(picked === a || picked === b) winner = picked;
+        }
+        matches.push({a:a, b:b, winner:winner});
+        nextSlots.push(winner);
+      }
+      rounds.push(matches);
+      if(nextSlots.length === 1) break;
+      currentSlots = nextSlots;
+      roundIndex++;
+    }
+    return rounds;
+  }
+
+  function roundLabel(totalRounds, idx){
+    var fromEnd = totalRounds - idx;
+    if(fromEnd === 1) return "決勝";
+    if(fromEnd === 2) return "準決勝";
+    if(fromEnd === 3) return "準々決勝";
+    return (idx+1) + "回戦";
+  }
+
+  function save(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+  }
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        var loaded = JSON.parse(raw);
+        state = Object.assign(state, loaded);
+      }
+    }catch(e){}
+  }
+
+  // ---------- SETUP SCREEN ----------
+  var countRow = document.getElementById("countRow");
+  var teamGrid = document.getElementById("teamGrid");
+  var randomToggle = document.getElementById("randomToggle");
+  var startBtn = document.getElementById("startBtn");
+
+  [4,8,12,16].forEach(function(n){
+    var b = document.createElement("button");
+    b.className = "count-btn" + (n === state.teamCount ? " active" : "");
+    b.textContent = n + "チーム";
+    b.dataset.count = n;
+    b.addEventListener("click", function(){
+      state.teamCount = n;
+      state.teamNames = buildDefaultNames(n);
+      renderSetup();
+    });
+    countRow.appendChild(b);
+  });
+
+  function renderSetup(){
+    // count buttons active state
+    Array.prototype.forEach.call(countRow.children, function(btn){
+      btn.classList.toggle("active", parseInt(btn.dataset.count,10) === state.teamCount);
+    });
+    if(!state.teamNames || state.teamNames.length !== state.teamCount){
+      state.teamNames = buildDefaultNames(state.teamCount);
+    }
+    teamGrid.innerHTML = "";
+    state.teamNames.forEach(function(name, i){
+      var input = document.createElement("input");
+      input.type = "text";
+      input.value = name;
+      input.placeholder = defaultName(i);
+      input.addEventListener("input", function(){
+        state.teamNames[i] = input.value;
+      });
+      teamGrid.appendChild(input);
+    });
+  }
+
+  startBtn.addEventListener("click", function(){
+    var names = state.teamNames.map(function(n, i){
+      var v = (n || "").trim();
+      return v.length ? v : defaultName(i);
+    });
+    var order = randomToggle.checked ? shuffle(names) : names;
+    var bracketSize = nextPow2(state.teamCount);
+    state.round0Slots = buildRound0Slots(order, bracketSize);
+    state.winners = {};
+    state.screen = "bracket";
+    save();
+    showScreen();
+  });
+
+  // ---------- BRACKET SCREEN ----------
+  var bracketEl = document.getElementById("bracket");
+  var championBox = document.getElementById("champion");
+  var championName = document.getElementById("championName");
+
+  function renderBracket(){
+    var rounds = computeRounds(state.round0Slots, state.winners);
+    var totalRounds = rounds.length;
+    bracketEl.innerHTML = "";
+
+    rounds.forEach(function(matches, r){
+      var col = document.createElement("div");
+      col.className = "round-col";
+
+      var title = document.createElement("div");
+      title.className = "round-title";
+      title.textContent = roundLabel(totalRounds, r);
+      col.appendChild(title);
+
+      matches.forEach(function(match, m){
+        var box = document.createElement("div");
+        box.className = "match";
+
+        [["a", match.a], ["b", match.b]].forEach(function(pair){
+          var side = pair[0], name = pair[1];
+          var slot = document.createElement("div");
+          var isBye = (side === "a" ? !match.b : !match.a) && name;
+          if(!name){
+            slot.className = "slot empty";
+            slot.textContent = "未定";
+          } else if(isBye){
+            slot.className = "slot bye";
+            slot.innerHTML = name + ' <span class="mark">(不戦勝)</span>';
+          } else if(match.winner === name){
+            slot.className = "slot winner";
+            slot.innerHTML = name + ' <span class="mark">&#9679; WIN</span>';
+          } else if(match.winner && match.winner !== name){
+            slot.className = "slot loser";
+            slot.textContent = name;
+          } else {
+            slot.className = "slot";
+            slot.textContent = name;
+          }
+
+          // clickable only when both real names present (a genuine decision)
+          if(match.a && match.b && name){
+            slot.addEventListener("click", function(){
+              state.winners[r + "_" + m] = name;
+              save();
+              renderBracket();
+            });
+          }
+          box.appendChild(slot);
+        });
+
+        col.appendChild(box);
+      });
+
+      bracketEl.appendChild(col);
+    });
+
+    var final = rounds[rounds.length - 1];
+    var champ = final && final[0] ? final[0].winner : null;
+    if(champ){
+      championBox.style.display = "block";
+      championName.textContent = champ;
+    } else {
+      championBox.style.display = "none";
+    }
+  }
+
+  document.getElementById("rematchBtn").addEventListener("click", function(){
+    if(!confirm("勝敗の記録をリセットします（チーム配置はそのまま）。よろしいですか？")) return;
+    state.winners = {};
+    save();
+    renderBracket();
+  });
+
+  document.getElementById("newSetupBtn").addEventListener("click", function(){
+    if(!confirm("チーム数・チーム名の設定からやり直します。よろしいですか？")) return;
+    state.screen = "setup";
+    state.round0Slots = [];
+    state.winners = {};
+    save();
+    showScreen();
+  });
+
+  function showScreen(){
+    if(state.screen === "bracket" && state.round0Slots && state.round0Slots.length){
+      document.getElementById("setupScreen").style.display = "none";
+      document.getElementById("bracketScreen").style.display = "block";
+      renderBracket();
+    } else {
+      document.getElementById("setupScreen").style.display = "block";
+      document.getElementById("bracketScreen").style.display = "none";
+      renderSetup();
+    }
+  }
+
+  load();
+  if(!state.teamNames || !state.teamNames.length){
+    state.teamNames = buildDefaultNames(state.teamCount);
+  }
+  showScreen();
+})();
+</script>
+</body>
+</html>
