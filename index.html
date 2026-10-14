@@ -367,7 +367,7 @@
             var line = document.createElementNS(svgNS,"line");
             line.setAttribute("x1",seg[0]); line.setAttribute("y1",seg[1]);
             line.setAttribute("x2",seg[2]); line.setAttribute("y2",seg[3]);
-            line.setAttribute("stroke","#3a4a8a"); line.setAttribute("stroke-width","3");
+            line.setAttribute("stroke","#ffffff"); line.setAttribute("stroke-width","3");
             svg.appendChild(line);
           });
       }
@@ -429,10 +429,10 @@
           var cls = "badge";
           if(L0 === 0){
             cls += elim ? " eliminated" : "";
-            badge.style.background = elim ? "#334" : "hsl(" + hue + ",70%,55%)";
+            badge.style.background = elim ? "#334" : "hsl(" + hue + ",85%,72%)";
           } else {
             cls += elim ? " eliminated" : " advanced";
-            badge.style.background = elim ? "#334" : "hsl(" + hue + ",80%,60%)";
+            badge.style.background = elim ? "#334" : "hsl(" + hue + ",90%,75%)";
           }
           if(isApex && !elim && name){ cls += " champion-badge"; }
           badge.className = cls;
