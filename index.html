@@ -61,8 +61,9 @@
   /* ---- bracket screen ---- */
   #bracketScreen{display:none;}
 
-  #champion{display:none;text-align:center;padding:16px;margin-bottom:16px;border-radius:14px;
-    background:linear-gradient(135deg,#2a2608,#3a3210);border:2px solid var(--gold);}
+  #champion{display:none;text-align:center;padding:16px 60px;margin-bottom:16px;
+    background-image:url("assets/champion-banner.png");
+    background-size:100% 100%;background-position:center;background-repeat:no-repeat;}
   #champion .label{font-size:.78rem;color:var(--gold);letter-spacing:.12em;}
   #champion .name{font-size:1.7rem;font-weight:800;color:#fff;margin-top:4px;}
 
@@ -501,8 +502,9 @@
             }
           }
 
-          // flare newly-decided advancement badges (L>=1)
-          if(L0 >= 1){
+          // flare newly-decided advancement badges (L>=1) -- skip the champion icon, whose
+          // square glow doesn't match its round artwork, per feedback
+          if(L0 >= 1 && !isApex){
             var flareKey = L0 + "@" + idx + "=" + name;
             currentFlareKeys[flareKey] = true;
             if(!lastFlareKeys[flareKey]) badge.classList.add("flare");
