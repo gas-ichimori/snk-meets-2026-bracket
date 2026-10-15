@@ -31,6 +31,7 @@
   header{padding:14px 20px;display:flex;align-items:center;gap:16px;border-bottom:2px solid var(--blue);
     background:linear-gradient(90deg,#ffffff 0%,#007ADA 100%);}
   header img.logo{height:44px;width:auto;flex-shrink:0;cursor:pointer;}
+  header img.ff-logo{cursor:default;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4));}
 
   main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
 
@@ -70,14 +71,17 @@
   .pyramid-wrap{position:relative;transform-origin:top left;}
   .pyramid-wrap svg{position:absolute;left:0;top:0;pointer-events:none;}
 
-  .leaf-panel{position:absolute;border:2px solid #2b3a74;border-radius:10px;
-    background:linear-gradient(160deg,#ffffff 0%,#cdeeff 55%,#8fd6f5 100%);
+  .leaf-panel{position:absolute;
+    background-image:url("assets/team-frame.png"), linear-gradient(160deg,#ffffff 0%,#cdeeff 55%,#8fd6f5 100%);
+    background-size:100% 100%, calc(100% - 22px) calc(100% - 22px);
+    background-position:center, center;
+    background-repeat:no-repeat, no-repeat;
     display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;
-    padding:8px 5px 5px;transition:border-color .4s, opacity .4s;}
+    padding:11px 14px 9px;transition:opacity .4s;}
   .leaf-panel .lname{font-size:.72rem;font-weight:700;text-align:center;line-height:1.15;
     word-break:break-all;color:#1a1f33;}
   .leaf-panel.eliminated .lname{color:#9aa0b4;}
-  .leaf-panel.champion-panel{border-color:var(--gold);box-shadow:0 0 14px 2px rgba(255,214,10,.5);}
+  .leaf-panel.champion-panel{box-shadow:0 0 14px 2px rgba(255,214,10,.5);}
 
   .badge{position:absolute;display:flex;align-items:center;justify-content:center;
     font-weight:800;color:#111;border:2px solid rgba(255,255,255,.45);
@@ -106,6 +110,7 @@
 <div id="app">
   <header>
     <img class="logo" src="assets/snk-meets-2026-logo.png" alt="SNK MEETS 2026 — タップで再設定" id="logoResetBtn">
+    <img class="logo ff-logo" src="assets/ff-cotw-logo.png" alt="FATAL FURY 餓狼伝説 City of the Wolves">
   </header>
 
   <main>
