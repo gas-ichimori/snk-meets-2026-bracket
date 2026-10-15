@@ -29,11 +29,8 @@
   #app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;}
 
   header{padding:14px 20px;display:flex;align-items:center;gap:16px;border-bottom:2px solid var(--blue);
-    background:linear-gradient(180deg,#0e1838,#0b1430);}
-  header img.logo{height:44px;width:auto;flex-shrink:0;}
-  header .htext{min-width:0;}
-  header h1{margin:0;font-size:1.05rem;letter-spacing:.02em;color:var(--text);}
-  header p{margin:2px 0 0;font-size:.74rem;color:var(--sub);}
+    background:linear-gradient(90deg,#ffffff 0%,#007ADA 100%);}
+  header img.logo{height:44px;width:auto;flex-shrink:0;cursor:pointer;}
 
   main{flex:1;padding:16px;max-width:1400px;margin:0 auto;width:100%;}
 
@@ -58,7 +55,6 @@
     font-size:.95rem;font-weight:700;cursor:pointer;}
   .btn-primary{background:var(--blue);color:#fff;}
   .btn-ghost{background:transparent;color:var(--sub);border:1px solid #2b3a74;}
-  .btn-white-border{border-color:#ffffff;color:#fff;}
   .btn-row{display:flex;gap:10px;flex-wrap:wrap;}
 
   /* ---- bracket screen ---- */
@@ -70,7 +66,8 @@
   #champion .name{font-size:1.7rem;font-weight:800;color:#fff;margin-top:4px;}
 
   .pyramid-scroll{overflow-x:auto;overflow-y:hidden;padding:10px 0 20px;}
-  .pyramid-wrap{position:relative;margin:0 auto;}
+  #pyramidOuter{margin:0 auto;}
+  .pyramid-wrap{position:relative;transform-origin:top left;}
   .pyramid-wrap svg{position:absolute;left:0;top:0;pointer-events:none;}
 
   .leaf-panel{position:absolute;border:2px solid #2b3a74;border-radius:10px;
@@ -105,22 +102,13 @@
 
   footer{text-align:center;padding:14px;font-size:.72rem;color:#51608c;}
 
-  @media (max-width:600px){
-    header img.logo{height:36px;}
-    header h1{font-size:.92rem;}
-  }
 </style>
 </head>
 <body>
 <div id="bgArt"></div>
 <div id="app">
   <header>
-    <img class="logo" src="assets/snk-meets-2026-logo.png" alt="SNK MEETS 2026">
-    <div class="htext">
-      <h1>トーナメント管理</h1>
-      <p>メディア対抗戦・リアルタイム進行用</p>
-    </div>
-    <button class="btn btn-ghost btn-white-border" id="newSetupBtn" style="margin-left:auto;display:none;">再設定</button>
+    <img class="logo" src="assets/snk-meets-2026-logo.png" alt="SNK MEETS 2026 — タップで再設定" id="logoResetBtn">
   </header>
 
   <main>
@@ -152,7 +140,9 @@
       </div>
 
       <div class="pyramid-scroll">
-        <div class="pyramid-wrap" id="pyramid"></div>
+        <div id="pyramidOuter">
+          <div class="pyramid-wrap" id="pyramid"></div>
+        </div>
       </div>
     </div>
   </main>
@@ -180,12 +170,27 @@
   function nextPow2(n){ var p=1; while(p<n) p*=2; return p; }
   function teamHue(i, total){ return Math.round((i * (360/total)) % 360); }
 
+  // Byes are spread evenly across the whole bracket (not clustered in the first few matches),
+  // so no single branch gets a disproportionate free ride to the later rounds.
   function buildRound0Slots(teamsOrder, bracketSize){
+    var totalPairs = bracketSize / 2;
     var byes = bracketSize - teamsOrder.length;
-    var slots = []; var idx = 0;
-    for(var i=0;i<byes;i++){ slots.push(teamsOrder[idx++]); slots.push(null); }
-    while(idx < teamsOrder.length) slots.push(teamsOrder[idx++]);
-    while(slots.length < bracketSize) slots.push(null);
+    var byePairSet = {};
+    for(var i=0;i<byes;i++){
+      var pairIdx = Math.floor(i * totalPairs / byes);
+      byePairSet[pairIdx] = true;
+    }
+    var slots = new Array(bracketSize).fill(null);
+    var idx = 0;
+    for(var p=0;p<totalPairs;p++){
+      if(byePairSet[p]){
+        slots[2*p] = teamsOrder[idx++];
+        slots[2*p+1] = null;
+      } else {
+        slots[2*p] = teamsOrder[idx++];
+        slots[2*p+1] = teamsOrder[idx++];
+      }
+    }
     return slots;
   }
 
@@ -342,6 +347,15 @@
     pyramidEl.style.height = layout.height + "px";
     pyramidEl.innerHTML = "";
 
+    // Scale the whole pyramid down to fit the available width so large brackets
+    // (12/16 teams) display in full without needing horizontal scrolling.
+    var outerEl = document.getElementById("pyramidOuter");
+    var availWidth = outerEl.parentElement.clientWidth || layout.width;
+    var scale = Math.min(1, availWidth / layout.width);
+    pyramidEl.style.transform = "scale(" + scale + ")";
+    outerEl.style.width = (layout.width * scale) + "px";
+    outerEl.style.height = (layout.height * scale) + "px";
+
     // --- SVG connector lines ---
     var svgNS = "http://www.w3.org/2000/svg";
     var svg = document.createElementNS(svgNS, "svg");
@@ -493,7 +507,8 @@
     }
   }
 
-  document.getElementById("newSetupBtn").addEventListener("click", function(){
+  document.getElementById("logoResetBtn").addEventListener("click", function(){
+    if(state.screen !== "bracket") return; // nothing to reset from the setup screen
     if(!confirm("チーム数・チーム名の設定からやり直します。よろしいですか？")) return;
     state.screen = "setup";
     state.round0Slots = [];
@@ -504,19 +519,20 @@
   });
 
   function showScreen(){
-    var headerBtn = document.getElementById("newSetupBtn");
     if(state.screen === "bracket" && state.round0Slots && state.round0Slots.length){
       document.getElementById("setupScreen").style.display = "none";
       document.getElementById("bracketScreen").style.display = "block";
-      headerBtn.style.display = "inline-block";
       renderBracket();
     } else {
       document.getElementById("setupScreen").style.display = "block";
       document.getElementById("bracketScreen").style.display = "none";
-      headerBtn.style.display = "none";
       renderSetup();
     }
   }
+
+  window.addEventListener("resize", function(){
+    if(state.screen === "bracket" && state.round0Slots && state.round0Slots.length) renderBracket();
+  });
 
   load();
   if(!state.teamNames || !state.teamNames.length) state.teamNames = buildDefaultNames(state.teamCount);
