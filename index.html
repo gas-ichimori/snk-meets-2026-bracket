@@ -74,7 +74,6 @@
     background:linear-gradient(160deg,#ffffff 0%,#cdeeff 55%,#8fd6f5 100%);
     display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;
     padding:8px 5px 5px;transition:border-color .4s, opacity .4s;}
-  .leaf-panel.empty{border-style:dashed;opacity:.35;background:transparent;}
   .leaf-panel .lname{font-size:.72rem;font-weight:700;text-align:center;line-height:1.15;
     word-break:break-all;color:#1a1f33;}
   .leaf-panel.eliminated .lname{color:#9aa0b4;}
@@ -95,8 +94,6 @@
     100%{ transform:translate(-50%,-50%) scale(1); }
   }
   .badge.flare{animation:flare .85s ease-out;}
-
-  .bye-tag{position:absolute;font-size:.6rem;color:var(--sub);white-space:nowrap;transform:translate(-50%,0);}
 
   .crown{position:absolute;transform:translate(-50%,-100%);font-size:1.6rem;}
 
@@ -319,6 +316,18 @@
     return m ? m.winner : null;
   }
 
+  // Does the subtree feeding level-L slot i contain at least one real team (vs. being a
+  // permanently-empty structural bye slot)? Used to draw a clean pass-through line for byes
+  // instead of a fake "match" junction with a dead-end stub.
+  function branchHasRealTeam(round0Slots, bracketSize, level, idx){
+    var leavesPerSlot = Math.pow(2, level);
+    var start = idx * leavesPerSlot;
+    for(var k=0; k<leavesPerSlot; k++){
+      if(round0Slots[start+k] !== null) return true;
+    }
+    return false;
+  }
+
   function isEliminated(rounds, name){
     if(!name) return false;
     for(var r=0;r<rounds.length;r++){
@@ -369,8 +378,23 @@
         var yChildTop = connectorTopY(layout, L-1);
         var yParentBottom = connectorBottomY(layout, L);
         var midY = (yChildTop + yParentBottom) / 2;
-        [[xC0,yChildTop,xC0,midY],[xC1,yChildTop,xC1,midY],[xC0,midY,xC1,midY],[xP,midY,xP,yParentBottom]]
-          .forEach(function(seg){
+
+        // Figure out whether each child slot is a real (possibly still-undecided) leaf/branch,
+        // or a permanently-empty structural bye slot (round0Slots entry is null there).
+        var child0Real = branchHasRealTeam(state.round0Slots, bracketSize, L-1, 2*m);
+        var child1Real = branchHasRealTeam(state.round0Slots, bracketSize, L-1, 2*m+1);
+
+        var segments;
+        if(child0Real && child1Real){
+          segments = [[xC0,yChildTop,xC0,midY],[xC1,yChildTop,xC1,midY],[xC0,midY,xC1,midY],[xP,midY,xP,yParentBottom]];
+        } else if(child0Real){
+          segments = [[xC0,yChildTop,xC0,yParentBottom]]; // true bye: a single clean pass-through line, no junction box
+        } else if(child1Real){
+          segments = [[xC1,yChildTop,xC1,yParentBottom]];
+        } else {
+          segments = [];
+        }
+        segments.forEach(function(seg){
             var line = document.createElementNS(svgNS,"line");
             line.setAttribute("x1",seg[0]); line.setAttribute("y1",seg[1]);
             line.setAttribute("x2",seg[2]); line.setAttribute("y2",seg[3]);
@@ -384,24 +408,22 @@
     var currentFlareKeys = {};
 
     // --- leaf panels (round 0, always-visible home panels) ---
+    // A structurally-empty bye slot (no team was ever assigned here) gets no panel at all --
+    // that team simply enters the bracket one round higher up, with a clean pass-through line.
     for(var i=0;i<bracketSize;i++){
       var name0 = state.round0Slots[i];
+      if(!name0) continue;
       var panel = document.createElement("div");
       var x0 = layout.layoutX[0][i], y0 = layout.layoutY[0];
       panel.style.left = x0 + "px"; panel.style.top = y0 + "px";
       panel.style.width = LEAF_PANEL_W + "px"; panel.style.height = LEAF_PANEL_H + "px";
       panel.style.transform = "translate(-50%,-50%)";
-      if(!name0){
-        panel.className = "leaf-panel empty";
-        panel.innerHTML = '<span class="lname">―</span>';
-      } else {
-        var elim0 = isEliminated(rounds, name0);
-        panel.className = "leaf-panel" + (elim0 ? " eliminated" : "");
-        var nameDiv = document.createElement("div");
-        nameDiv.className = "lname";
-        nameDiv.textContent = name0;
-        panel.appendChild(nameDiv);
-      }
+      var elim0 = isEliminated(rounds, name0);
+      panel.className = "leaf-panel" + (elim0 ? " eliminated" : "");
+      var nameDiv = document.createElement("div");
+      nameDiv.className = "lname";
+      nameDiv.textContent = name0;
+      panel.appendChild(nameDiv);
       pyramidEl.appendChild(panel);
     }
 
@@ -410,6 +432,7 @@
       var slotCount = layout.layoutX[L0].length;
       for(var idx=0; idx<slotCount; idx++){
         var name = occupantAt(rounds, state.round0Slots, L0, idx);
+        if(L0 === 0 && !name) continue; // no leaf panel there either -- nothing to draw
         var x = layout.layoutX[L0][idx];
         var y;
         var w = BADGE_W, h = BADGE_H;
@@ -471,20 +494,6 @@
           }
         }
         pyramidEl.appendChild(badge);
-
-        // bye tag
-        if(L0 >= 1 && name){
-          var srcMatch = rounds[L0-1] && rounds[L0-1][idx];
-          // only a TRUE structural bye (opponent slot is null, not merely undecided) gets the tag
-          if(srcMatch && ((srcMatch.a && srcMatch.b === null) || (srcMatch.b && srcMatch.a === null))){
-            var tag = document.createElement("div");
-            tag.className = "bye-tag";
-            tag.style.left = x + "px";
-            tag.style.top = (y + h/2 + 2) + "px";
-            tag.textContent = "不戦勝";
-            pyramidEl.appendChild(tag);
-          }
-        }
       }
     }
 
