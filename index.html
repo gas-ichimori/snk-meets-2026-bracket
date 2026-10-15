@@ -85,13 +85,15 @@
   .leaf-panel.champion-panel{box-shadow:0 0 14px 2px rgba(255,214,10,.5);}
 
   .badge{position:absolute;display:flex;align-items:center;justify-content:center;
-    font-weight:800;color:#111;border:2px solid rgba(255,255,255,.45);
-    transition:filter .4s, box-shadow .4s, border-color .4s, opacity .4s;}
+    font-weight:800;color:#111;
+    background-image:url("assets/team-badge-frame.png");
+    background-size:100% 100%;background-position:center;background-repeat:no-repeat;
+    transition:filter .4s, box-shadow .4s, opacity .4s;}
   .badge.clickable{cursor:pointer;}
-  .badge.placeholder{background:transparent;border:2px dashed #33407a;color:transparent;}
-  .badge.advanced{box-shadow:0 0 0 3px var(--gold), 0 0 16px 4px rgba(255,214,10,.75);border-color:var(--gold);}
-  .badge.eliminated{filter:grayscale(1) brightness(.5);opacity:.45;cursor:default;box-shadow:none;border-color:#445;}
-  .badge.champion-badge{box-shadow:0 0 0 4px var(--gold), 0 0 26px 8px rgba(255,214,10,.9);border-color:var(--gold);}
+  .badge.placeholder{background-color:transparent;background-image:none;color:transparent;}
+  .badge.advanced{box-shadow:0 0 0 3px var(--gold), 0 0 16px 4px rgba(255,214,10,.75);}
+  .badge.eliminated{filter:grayscale(1) brightness(.5);opacity:.45;cursor:default;box-shadow:none;}
+  .badge.champion-badge{box-shadow:0 0 0 4px var(--gold), 0 0 26px 8px rgba(255,214,10,.9);}
 
   @keyframes flare{
     0%{ transform:translate(-50%,-50%) scale(.4); box-shadow:0 0 0 0 rgba(255,214,10,0); }
@@ -453,7 +455,7 @@
         var badge = document.createElement("div");
         badge.style.left = x + "px"; badge.style.top = y + "px";
         badge.style.width = w + "px"; badge.style.height = h + "px";
-        badge.style.borderRadius = (w/2) + "px";
+        badge.style.borderRadius = (w/2) + "px"; // clip the per-team fill color to a pill shape to match the frame art
         badge.style.fontSize = (isApex ? 1.15 : 0.82) + "rem";
         badge.style.transform = "translate(-50%,-50%)";
 
@@ -466,10 +468,10 @@
           var cls = "badge";
           if(L0 === 0){
             cls += elim ? " eliminated" : "";
-            badge.style.background = elim ? "#334" : "hsl(" + hue + ",85%,72%)";
+            badge.style.backgroundColor = elim ? "#334" : "hsl(" + hue + ",85%,72%)";
           } else {
             cls += elim ? " eliminated" : " advanced";
-            badge.style.background = elim ? "#334" : "hsl(" + hue + ",90%,75%)";
+            badge.style.backgroundColor = elim ? "#334" : "hsl(" + hue + ",90%,75%)";
           }
           if(isApex && !elim && name){ cls += " champion-badge"; }
           badge.className = cls;
