@@ -86,7 +86,7 @@
   .leaf-panel.champion-panel{box-shadow:0 0 14px 2px rgba(255,214,10,.5);}
 
   .badge{position:absolute;display:flex;align-items:center;justify-content:center;
-    font-weight:800;color:#111;
+    font-weight:800;color:#fff;text-shadow:0 0 3px rgba(0,0,0,.9), 0 1px 2px rgba(0,0,0,1);
     background-image:url("assets/team-badge-frame.png");
     background-size:100% 100%;background-position:center;background-repeat:no-repeat;
     filter:drop-shadow(0 0 3px rgba(0,0,0,.85)) drop-shadow(0 0 7px rgba(0,0,0,.6));
@@ -477,10 +477,10 @@
             var cls = "badge";
             if(L0 === 0){
               cls += elim ? " eliminated" : "";
-              badge.style.backgroundColor = elim ? "#334" : "hsl(" + hue + ",85%,72%)";
+              badge.style.backgroundColor = elim ? "#334" : "hsla(" + hue + ",85%,72%,0.3)";
             } else {
               cls += elim ? " eliminated" : " advanced";
-              badge.style.backgroundColor = elim ? "#334" : "hsl(" + hue + ",90%,75%)";
+              badge.style.backgroundColor = elim ? "#334" : "hsla(" + hue + ",90%,75%,0.3)";
             }
             badge.className = cls;
             badge.textContent = name.charAt(0);
