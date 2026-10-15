@@ -72,14 +72,15 @@
   .pyramid-wrap svg{position:absolute;left:0;top:0;pointer-events:none;}
 
   .leaf-panel{position:absolute;
-    background-image:url("assets/team-frame.png"), linear-gradient(160deg,#ffffff 0%,#cdeeff 55%,#8fd6f5 100%);
-    background-size:100% 100%, calc(100% - 22px) calc(100% - 22px);
-    background-position:center, center;
-    background-repeat:no-repeat, no-repeat;
+    background-image:url("assets/team-frame.png");
+    background-size:100% 100%;
+    background-position:center;
+    background-repeat:no-repeat;
     display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;
     padding:11px 14px 9px;transition:opacity .4s;}
   .leaf-panel .lname{font-size:.72rem;font-weight:700;text-align:center;line-height:1.15;
-    word-break:break-all;color:#1a1f33;}
+    word-break:break-all;color:#fff;
+    text-shadow:0 0 3px rgba(0,0,0,.9), 0 0 6px rgba(0,0,0,.8), 0 1px 2px rgba(0,0,0,1);}
   .leaf-panel.eliminated .lname{color:#9aa0b4;}
   .leaf-panel.champion-panel{box-shadow:0 0 14px 2px rgba(255,214,10,.5);}
 
