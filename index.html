@@ -102,7 +102,6 @@
   }
   .badge.flare{animation:flare .85s ease-out;}
 
-  .crown{position:absolute;transform:translate(-50%,-100%);font-size:1.6rem;}
 
   footer{text-align:center;padding:14px;font-size:.72rem;color:#51608c;}
 
@@ -295,7 +294,8 @@
 
   // ---------- BRACKET SCREEN (vertical pyramid, panel + badge style) ----------
   var LEAF_GAP_X = 118, LEAF_PANEL_W = 92, LEAF_PANEL_H = 100, BADGE_W = 38, BADGE_H = 60,
-      ROUND_GAP_Y = 170, TOP_MARGIN = 80, SIDE_PAD = 22;
+      ROUND_GAP_Y = 170, TOP_MARGIN = 80, SIDE_PAD = 22,
+      CHAMPION_ICON_H = 130, CHAMPION_ICON_W = 120; // matches champion-icon.png's own aspect ratio (not a pill, so don't reuse BADGE_W/H)
 
   var pyramidEl = document.getElementById("pyramid");
   var championBox = document.getElementById("champion");
@@ -350,8 +350,9 @@
   function connectorTopY(layout, L){
     return L === 0 ? layout.layoutY[0] - LEAF_PANEL_H/2 : layout.layoutY[L] - BADGE_H/2;
   }
-  function connectorBottomY(layout, L){
-    return layout.layoutY[L] + BADGE_H/2;
+  function connectorBottomY(layout, L, numRounds){
+    var halfH = (L === numRounds) ? CHAMPION_ICON_H/2 : BADGE_H/2;
+    return layout.layoutY[L] + halfH;
   }
 
   function renderBracket(){
@@ -384,7 +385,7 @@
         var xC0 = layout.layoutX[L-1][2*m], xC1 = layout.layoutX[L-1][2*m+1];
         var xP = layout.layoutX[L][m];
         var yChildTop = connectorTopY(layout, L-1);
-        var yParentBottom = connectorBottomY(layout, L);
+        var yParentBottom = connectorBottomY(layout, L, numRounds);
         var midY = (yChildTop + yParentBottom) / 2;
 
         // Figure out whether each child slot is a real (possibly still-undecided) leaf/branch,
@@ -450,12 +451,12 @@
         } else {
           y = layout.layoutY[L0];
         }
-        if(isApex){ w = BADGE_W * 1.4; h = BADGE_H * 1.4; }
+        if(isApex){ w = CHAMPION_ICON_W; h = CHAMPION_ICON_H; }
 
         var badge = document.createElement("div");
         badge.style.left = x + "px"; badge.style.top = y + "px";
         badge.style.width = w + "px"; badge.style.height = h + "px";
-        badge.style.borderRadius = (w/2) + "px"; // clip the per-team fill color to a pill shape to match the frame art
+        if(!isApex) badge.style.borderRadius = (w/2) + "px"; // clip the per-team fill color to a pill shape to match the frame art
         badge.style.fontSize = (isApex ? 1.15 : 0.82) + "rem";
         badge.style.transform = "translate(-50%,-50%)";
 
@@ -463,20 +464,25 @@
           badge.className = "badge placeholder";
         } else {
           var elim = isEliminated(rounds, name);
-          var homeIdx = state.round0Slots.indexOf(name);
-          var hue = teamHue(homeIdx >= 0 ? homeIdx : idx, bracketSize);
-          var cls = "badge";
-          if(L0 === 0){
-            cls += elim ? " eliminated" : "";
-            badge.style.backgroundColor = elim ? "#334" : "hsl(" + hue + ",85%,72%)";
-          } else {
-            cls += elim ? " eliminated" : " advanced";
-            badge.style.backgroundColor = elim ? "#334" : "hsl(" + hue + ",90%,75%)";
-          }
-          if(isApex && !elim && name){ cls += " champion-badge"; }
-          badge.className = cls;
-          badge.textContent = name.charAt(0);
           badge.title = name;
+
+          if(isApex){
+            badge.className = "badge champion-badge" + (elim ? " eliminated" : "");
+            badge.style.backgroundImage = "url(\"assets/champion-icon.png\")";
+          } else {
+            var homeIdx = state.round0Slots.indexOf(name);
+            var hue = teamHue(homeIdx >= 0 ? homeIdx : idx, bracketSize);
+            var cls = "badge";
+            if(L0 === 0){
+              cls += elim ? " eliminated" : "";
+              badge.style.backgroundColor = elim ? "#334" : "hsl(" + hue + ",85%,72%)";
+            } else {
+              cls += elim ? " eliminated" : " advanced";
+              badge.style.backgroundColor = elim ? "#334" : "hsl(" + hue + ",90%,75%)";
+            }
+            badge.className = cls;
+            badge.textContent = name.charAt(0);
+          }
 
           // click target: this occupant may still have a pending decision at round L0 (feeds match rounds[L0][floor(idx/2)])
           if(L0 < numRounds){
@@ -505,13 +511,6 @@
       }
     }
 
-    // crown decoration above apex
-    var crown = document.createElement("div");
-    crown.className = "crown";
-    crown.style.left = layout.layoutX[numRounds][0] + "px";
-    crown.style.top = (layout.layoutY[numRounds] - BADGE_H*0.75) + "px";
-    crown.textContent = "\u{1F451}";
-    pyramidEl.appendChild(crown);
 
     lastFlareKeys = currentFlareKeys;
 
