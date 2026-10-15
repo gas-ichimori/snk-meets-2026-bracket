@@ -61,7 +61,7 @@
   /* ---- bracket screen ---- */
   #bracketScreen{display:none;}
 
-  #champion{display:none;text-align:center;padding:16px 60px;margin-bottom:16px;
+  #champion{display:none;text-align:center;padding:16px 60px;margin-bottom:6px;
     min-height:200px;box-sizing:border-box;
     flex-direction:column;align-items:center;justify-content:center;
     background-image:url("assets/champion-banner.png");
@@ -69,7 +69,7 @@
   #champion .label{font-size:.78rem;color:var(--gold);letter-spacing:.12em;}
   #champion .name{font-size:1.7rem;font-weight:800;color:#fff;margin-top:4px;}
 
-  .pyramid-scroll{overflow-x:auto;overflow-y:hidden;padding:10px 0 20px;}
+  .pyramid-scroll{overflow-x:auto;overflow-y:hidden;padding:4px 0 20px;}
   #pyramidOuter{margin:0 auto;}
   .pyramid-wrap{position:relative;transform-origin:top left;}
   .pyramid-wrap svg{position:absolute;left:0;top:0;pointer-events:none;}
@@ -305,7 +305,7 @@
 
   // ---------- BRACKET SCREEN (vertical pyramid, panel + badge style) ----------
   var LEAF_GAP_X = 118, LEAF_PANEL_W = 92, LEAF_PANEL_H = 100, BADGE_W = 38, BADGE_H = 60,
-      ROUND_GAP_Y = 170, TOP_MARGIN = 80, SIDE_PAD = 22,
+      ROUND_GAP_Y = 170, TOP_MARGIN = 70, SIDE_PAD = 22,
       CHAMPION_ICON_H = 130, CHAMPION_ICON_W = 120; // matches champion-icon.png's own aspect ratio (not a pill, so don't reuse BADGE_W/H)
 
   var pyramidEl = document.getElementById("pyramid");
